@@ -5,9 +5,9 @@ reader = Reader(rating_scale=(1, 10))
 
 
 def get_dataset():
-    anime = pd.read_parquet("../datasets/anime.parquet")
+    anime = pd.read_parquet("datasets/anime.parquet")
     anime = anime[["anime_id", "type"]]
-    users = pd.read_parquet("../datasets/users.parquet")
+    users = pd.read_parquet("datasets/users.parquet")
     base_df = users.merge(anime, on="anime_id", how="left")
     return base_df
 
@@ -39,9 +39,22 @@ def transform_dataframe_to_dataset(dataframe):
     return base_dataset
 
 
-def split_data(base_df):
+def filter_data(base_df):
     base_df = filter_not_valid_types(base_df)
     base_df = get_data_from_most_frequent_type(base_df)
+    return base_df
+
+
+def split_data(base_df):
+    base_df = filter_data(base_df)
+    base_df = base_df[["user_id", "anime_id", "rating"]]
+    dataset = transform_dataframe_to_dataset(base_df)
+    return dataset
+
+
+def filter_animes_without_grade(base_df):
+    base_df = base_df.loc[~(base_df.rating == -1)]
+    base_df = filter_data(base_df)
     base_df = base_df[["user_id", "anime_id", "rating"]]
     dataset = transform_dataframe_to_dataset(base_df)
     return dataset
